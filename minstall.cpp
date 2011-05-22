@@ -93,93 +93,7 @@ MInstall::MInstall(QWidget *parent) : QWidget(parent) {
     gmtCheckBox->setChecked(true);
   }
 
-  //setup csView
-  csView->header()->setMinimumSectionSize(150);
-  csView->header()->resizeSection(0,150);
-  QTreeWidgetItem *networkItem = new QTreeWidgetItem(csView);
-  networkItem->setText(0, tr("Networking"));
-//  networkItem->setSizeHint(0, QSize(180,10));
-//  networkItem->setSizeHint(1, QSize(200,10));
-  QString val = getCmdValue("dpkg -s guarddog | grep '^Status'", "ok", " ", " ");
-  if (val.compare("installed") == 0) {
-    // guarddog installed
-    guarddogItem = new QTreeWidgetItem(networkItem);
-    guarddogItem->setText(0, "guarddog");
-    guarddogItem->setText(1, tr("Desktop firewall"));
-    guarddogItem->setCheckState(0, Qt::Checked);
-  } else {
-    guarddogItem = NULL;
-  }
-  pppItem = new QTreeWidgetItem(networkItem);
-  pppItem->setText(0, "ppp");
-  pppItem->setText(1, tr("Dialup, adsl, and pptp support"));
-  if (getCmdValue("cat /etc/default/mepis","SERVER","="," ").contains("yes", Qt::CaseInsensitive)) {
-    pppItem->setCheckState(0, Qt::Unchecked);
-  } else {
-    pppItem->setCheckState(0, Qt::Checked);
-  }
-  /*
-  isdnItem = new QCheckListItem(networkItem, "isdn", QCheckListItem::CheckBox);
-  isdnItem->setText(1, tr("ISDN support"));
-  isdnItem->setOn(false);
-*/
-  networkItem->setExpanded(true);
-  
-  QTreeWidgetItem *otherItem = new QTreeWidgetItem(csView);
-  otherItem->setText(0, tr("Other"));
-  val = getCmdValue("dpkg -s apache2 | grep '^Status'", "ok", " ", " ");
-  if (val.compare("installed") == 0) {
-    // apache installed
-    apacheItem = new QTreeWidgetItem(otherItem);
-    apacheItem->setText(0, "apache2");
-//    apacheItem->setMultiLinesEnabled(true);
-    apacheItem->setText(1, tr("Local web server with php and perl support"));
-  if (getCmdValue("cat /etc/default/mepis","SERVER","="," ").contains("yes", Qt::CaseInsensitive)) {
-      apacheItem->setCheckState(0, Qt::Checked);
-    } else {
-      apacheItem->setCheckState(0, Qt::Unchecked);
-    }
-  } else {
-    apacheItem = NULL;
-  }
-//  val = getCmdValue("dpkg -s mysql-server-4.1 | grep '^Status'", "ok", " ", " ");
-//  if (val.compare("installed") == 0) {
-    // mysql installed
-//    mysqlItem = new QTreeWidgetItem(otherItem);
-//    mysqlItem->setText(0, "mysql");
-//    mysqlItem->setText(1, tr("Local database server"));
-//    mysqlItem->setCheckState(0, Qt::Unchecked);
-//  } else {
-    mysqlItem = NULL;
-//  }
-  val = getCmdValue("dpkg -s bluez-utils | grep '^Status'", "ok", " ", " ");
-  if (val.compare("installed") == 0) {
-    bluezItem = new QTreeWidgetItem(otherItem);
-    bluezItem->setText(0, "bluez");
-    bluezItem->setText(1, tr("Bluetooth wireless device support"));
-    bluezItem->setCheckState(0, Qt::Checked);
-  } else {
-    bluezItem = NULL;
-  }
-
-  otherItem->setExpanded(true);
-
-  QTreeWidgetItem *printItem = new QTreeWidgetItem(csView);
-  printItem->setText(0, tr("Printing"));
-
-  val = getCmdValue("dpkg -s cups | grep '^Status'", "ok", " ", " ");
-  if (val.compare("installed") == 0) {
-    cupsysItem = new QTreeWidgetItem(printItem);
-    cupsysItem->setText(0, "cupsys");
-    cupsysItem->setText(1, tr("Linux and OSX printer service"));
-    cupsysItem->setCheckState(0, Qt::Checked);
-    cupsysItem->setExpanded(true);
-    printItem->setExpanded(true);
-  } else {
-    cupsysItem = NULL;
-  }
-
-  val = getCmdValue("dpkg -s samba | grep '^Status'", "ok", " ", " ");
+  QString val = getCmdValue("dpkg -s samba | grep '^Status'", "ok", " ", " ");
   if (val.compare("installed") == 0) {
     sambaCheckBox->setChecked(true);
   } else {
@@ -1249,8 +1163,6 @@ bool MInstall::setUserName() {
     system(cmd.toAscii());
     cmd = QString("cp -a '/mnt/mepis/etc/skel/Desktop/CD-ROM Device' %1/Desktop").arg(dpath);
     system(cmd.toAscii());
-    cmd = QString("cp -a /mnt/mepis/etc/skel/.openoffice.org2/user/config/javasettings_Linux_x86.xml %1/.openoffice.org2/user/config").arg(dpath);
-    system(cmd.toAscii());
   }
   // fix the ownership, demo=newuser
   cmd = QString("chown -R demo.users %1").arg(dpath);
@@ -1489,92 +1401,6 @@ void MInstall::setLocale() {
 
 }
 
-void MInstall::setServices() {
-  setCursor(QCursor(Qt::WaitCursor));
-  if (guarddogItem != NULL) {
-    if (guarddogItem->checkState(0) == Qt::Checked) {
-      replaceStringInFile("# DISABLED=1", "# DISABLED=0", "/mnt/mepis/etc/rc.firewall");
-      replaceStringInFile("DISABLE_GUARDDOG=1", "DISABLE_GUARDDOG=0", "/mnt/mepis/etc/rc.firewall");
-    } else {
-      replaceStringInFile("# DISABLED=0", "# DISABLED=1", "/mnt/mepis/etc/rc.firewall");
-      replaceStringInFile("DISABLE_GUARDDOG=0", "DISABLE_GUARDDOG=1", "/mnt/mepis/etc/rc.firewall");
-    }
-  }
-
-  if (apacheItem != NULL && apacheItem->checkState(0) == Qt::Checked) {
-    system("mv -f /mnt/mepis/etc/rc5.d/K91apache2 /mnt/mepis/etc/rc5.d/S91apache2 >/dev/null 2>&1");
-    system("mv -f /mnt/mepis/etc/rc4.d/K91apache2 /mnt/mepis/etc/rc4.d/S91apache2 >/dev/null 2>&1");
-    system("mv -f /mnt/mepis/etc/rc3.d/K91apache2 /mnt/mepis/etc/rc3.d/S91apache2 >/dev/null 2>&1");
-  } else {
-    system("mv -f /mnt/mepis/etc/rc5.d/S91apache2 /mnt/mepis/etc/rc5.d/K91apache2 >/dev/null 2>&1");
-    system("mv -f /mnt/mepis/etc/rc4.d/S91apache2 /mnt/mepis/etc/rc4.d/K91apache2 >/dev/null 2>&1");
-    system("mv -f /mnt/mepis/etc/rc3.d/S91apache2 /mnt/mepis/etc/rc3.d/K91apache2 >/dev/null 2>&1");
-  }
-  
-  if (mysqlItem != NULL && mysqlItem->checkState(0) == Qt::Checked) {
-    system("mv -f /mnt/mepis/etc/rc5.d/K20mysql /mnt/mepis/etc/rc5.d/S20mysql >/dev/null 2>&1");
-    system("mv -f /mnt/mepis/etc/rc4.d/K20mysql /mnt/mepis/etc/rc4.d/S20mysql >/dev/null 2>&1");
-    system("mv -f /mnt/mepis/etc/rc3.d/K20mysql /mnt/mepis/etc/rc3.d/S20mysql >/dev/null 2>&1");
-  } else {
-    system("mv -f /mnt/mepis/etc/rc5.d/S20mysql /mnt/mepis/etc/rc5.d/K20mysql >/dev/null 2>&1");
-    system("mv -f /mnt/mepis/etc/rc4.d/S20mysql /mnt/mepis/etc/rc4.d/K20mysql >/dev/null 2>&1");
-    system("mv -f /mnt/mepis/etc/rc3.d/S20mysql /mnt/mepis/etc/rc3.d/K20mysql >/dev/null 2>&1");
-  }
-    
-  if (pppItem != NULL && pppItem->checkState(0) == Qt::Checked) {
-    system("mv -f /mnt/mepis/etc/rc5.d/K14ppp /mnt/mepis/etc/rc5.d/S14ppp >/dev/null 2>&1");
-    system("mv -f /mnt/mepis/etc/rc4.d/K14ppp /mnt/mepis/etc/rc4.d/S14ppp >/dev/null 2>&1");
-    system("mv -f /mnt/mepis/etc/rc3.d/K14ppp /mnt/mepis/etc/rc3.d/S14ppp >/dev/null 2>&1");
-  } else {
-    system("mv -f /mnt/mepis/etc/rc5.d/S14ppp /mnt/mepis/etc/rc5.d/K14ppp >/dev/null 2>&1");
-    system("mv -f /mnt/mepis/etc/rc4.d/S14ppp /mnt/mepis/etc/rc4.d/K14ppp >/dev/null 2>&1");
-    system("mv -f /mnt/mepis/etc/rc3.d/S14ppp /mnt/mepis/etc/rc3.d/K14ppp >/dev/null 2>&1");
-  }
-/*  if (isdnItem->isOn()) {
-    system("mv -f /mnt/mepis/etc/rc5.d/K13capiutils /mnt/mepis/etc/rc5.d/S13capiutils >/dev/null 2>&1");
-    system("mv -f /mnt/mepis/etc/rc4.d/K13capiutils /mnt/mepis/etc/rc4.d/S13capiutils >/dev/null 2>&1");
-    system("mv -f /mnt/mepis/etc/rc3.d/K13capiutils /mnt/mepis/etc/rc3.d/S13capiutils >/dev/null 2>&1");
-    system("mv -f /mnt/mepis/etc/rc5.d/K13isdnactivecards /mnt/mepis/etc/rc5.d/S13isdnactivecards >/dev/null 2>&1");
-    system("mv -f /mnt/mepis/etc/rc4.d/K13isdnactivecards /mnt/mepis/etc/rc4.d/S13isdnactivecards >/dev/null 2>&1");
-    system("mv -f /mnt/mepis/etc/rc3.d/K13isdnactivecards /mnt/mepis/etc/rc3.d/S13isdnactivecards >/dev/null 2>&1");
-    system("mv -f /mnt/mepis/etc/rc5.d/K20isdnutils /mnt/mepis/etc/rc5.d/S20isdnutils >/dev/null 2>&1");
-    system("mv -f /mnt/mepis/etc/rc4.d/K20isdnutils /mnt/mepis/etc/rc4.d/S20isdnutils >/dev/null 2>&1");
-    system("mv -f /mnt/mepis/etc/rc3.d/K20isdnutils /mnt/mepis/etc/rc3.d/S20isdnutils >/dev/null 2>&1");
-  } else {
-    system("mv -f /mnt/mepis/etc/rc5.d/S13capiutils /mnt/mepis/etc/rc5.d/K13capiutils >/dev/null 2>&1");
-    system("mv -f /mnt/mepis/etc/rc4.d/S13capiutils /mnt/mepis/etc/rc4.d/K13capiutils >/dev/null 2>&1");
-    system("mv -f /mnt/mepis/etc/rc3.d/S13capiutils /mnt/mepis/etc/rc3.d/K13capiutils >/dev/null 2>&1");
-    system("mv -f /mnt/mepis/etc/rc5.d/S13isdnactivecards /mnt/mepis/etc/rc5.d/K13isdnactivecards >/dev/null 2>&1");
-    system("mv -f /mnt/mepis/etc/rc4.d/S13isdnactivecards /mnt/mepis/etc/rc4.d/K13isdnactivecards >/dev/null 2>&1");
-    system("mv -f /mnt/mepis/etc/rc3.d/S13isdnactivecards /mnt/mepis/etc/rc3.d/K13isdnactivecards >/dev/null 2>&1");
-    system("mv -f /mnt/mepis/etc/rc5.d/S20isdnutils /mnt/mepis/etc/rc5.d/K20isdnutils >/dev/null 2>&1");
-    system("mv -f /mnt/mepis/etc/rc4.d/S20isdnutils /mnt/mepis/etc/rc4.d/K20isdnutils >/dev/null 2>&1");
-    system("mv -f /mnt/mepis/etc/rc3.d/S20isdnutils /mnt/mepis/etc/rc3.d/K20isdnutils >/dev/null 2>&1");
-    // remove gui utilities from menus
-    system("rm -f /mnt/mepis/etc/menu/isdn*");
-    system("rm -f /mnt/mepis/usr/share/applnk/Internet/isdn-config.desktop");
-  }*/
-  if (bluezItem != NULL && bluezItem->checkState(0) == Qt::Checked) {
-    system("mv -f /mnt/mepis/etc/rc5.d/K25bluez-utils /mnt/mepis/etc/rc5.d/S25bluez-utils >/dev/null 2>&1");
-    system("mv -f /mnt/mepis/etc/rc4.d/K25bluez-utils /mnt/mepis/etc/rc4.d/S25bluez-utils >/dev/null 2>&1");
-    system("mv -f /mnt/mepis/etc/rc3.d/K25bluez-utils /mnt/mepis/etc/rc3.d/S25bluez-utils >/dev/null 2>&1");
-  } else {
-    system("mv -f /mnt/mepis/etc/rc5.d/S25bluez-utils /mnt/mepis/etc/rc5.d/K25bluez-utils >/dev/null 2>&1");
-    system("mv -f /mnt/mepis/etc/rc4.d/S25bluez-utils /mnt/mepis/etc/rc4.d/K25bluez-utils >/dev/null 2>&1");
-    system("mv -f /mnt/mepis/etc/rc3.d/S25bluez-utils /mnt/mepis/etc/rc3.d/K25bluez-utils >/dev/null 2>&1");
-  }
-  if (cupsysItem != NULL && cupsysItem->checkState(0) == Qt::Checked) {
-    system("mv -f /mnt/mepis/etc/rc5.d/K19cupsys /mnt/mepis/etc/rc5.d/S19cupsys >/dev/null 2>&1");
-    system("mv -f /mnt/mepis/etc/rc4.d/K19cupsys /mnt/mepis/etc/rc4.d/S19cupsys >/dev/null 2>&1");
-    system("mv -f /mnt/mepis/etc/rc3.d/K19cupsys /mnt/mepis/etc/rc3.d/S19cupsys >/dev/null 2>&1");
-  } else {
-    system("mv -f /mnt/mepis/etc/rc5.d/S19cupsys /mnt/mepis/etc/rc5.d/K19cupsys >/dev/null 2>&1");
-    system("mv -f /mnt/mepis/etc/rc4.d/S19cupsys /mnt/mepis/etc/rc4.d/K19cupsys >/dev/null 2>&1");
-    system("mv -f /mnt/mepis/etc/rc3.d/S19cupsys /mnt/mepis/etc/rc3.d/K19cupsys >/dev/null 2>&1");
-  } 
-
-  setCursor(QCursor(Qt::ArrowCursor));
-}
 
 void MInstall::stopInstall() {
   int curr = widgetStack->currentIndex();
@@ -1636,18 +1462,16 @@ int MInstall::showPage(int curr, int next) {
     if (!installLoader()) {
       return curr;
     }
-  } else if (next == 9 && curr == 8) {
+  } else if (next == 8 && curr == 7) {
     if (!setUserInfo()) {
       return curr;
     }
-  } else if (next == 7 && curr == 6) {
+  } else if (next == 6 && curr == 5) {
     if (!setComputerName()) {
       return curr;
     }
-  } else if (next == 8 && curr == 7) {
+  } else if (next == 7 && curr == 6) {
     setLocale();
-  } else if (next == 6 && curr == 5) {
-    setServices();
   }
   return next;
 }
@@ -1660,7 +1484,7 @@ void MInstall::pageDisplayed(int next) {
       setCursor(QCursor(Qt::ArrowCursor));
       ((MMain *)mmn)->setHelpText(tr("<p><b>General Instructions</b><br/>BEFORE PROCEEDING, CLOSE ALL OTHER APPLICATIONS.</p>"
 	"<p>On each page, please read the instructions, make your selections, and then click on Next when you are ready to proceed.  You will be prompted for confirmation before any destructive actions are performed.</p>"
-	"<p><b>Partition Requirements</b><br/>A linux-swap partition is recommended that is as large as your RAM size.  If used, a separate linux /home (pronounced home) partition should be at least 200MB and preferably as large as possible.  This is where your personal files are stored.  A separate home partition will make it easier to backup, upgrade or reinstall MEPIS in the future.  A linux / ( pronounced root) partition is required.  It needs to be at least 1.8 GB for Lite versions of MEPIS and 2.0 GB for other versions of MEPIS and it must be even larger if you do not have a separate home partition.  This is where applications and system files will be stored.</p>"
+	"<p><b>Partition Requirements</b><br/>A linux-swap partition is recommended that is as large as your RAM size.  If used, a separate linux /home (pronounced home) partition should be at least 200MB and preferably as large as possible.  This is where your personal files are stored.  A separate home partition will make it easier to backup, upgrade or reinstall MEPIS in the future.  A linux / ( pronounced root) partition is required.  Usually, this partition needs to be at least 2.0 GB and it must be even larger if you do not have a separate home partition.  This is where applications and system files will be stored.</p>"
         "<p><b>Auto-install Using Entire Disk</b><br/>The selected disk will be reformatted and the installer will partition the disk as MEPIS prefers.  Optionally you may request that a portion of the disk is left free if possible, for example so you can install a second OS later.</p>"
         "<p><b>Custom Install on Existing Partitions</b><br/>MEPIS will be installed on the existing partitions you choose.  If the disk isn't already partitioned appropriately, you can modify the partitions now with PartitionManager.  If you modify the partitions, it is best to reboot the system before continuing with the installation.  Do NOT use a Linux partioning tool if you are installing on an Apple computer boot drive.  Instead you must setup your partitions and boot manager in OSX before installing MEPIS. The SimplyMEPIS Assistant is an OSX application available on the MEPIS CD to help you prepare your OSX boot volume for MEPIS Linux.</p>"
         "<p><b>Upgrading</b><br/>To upgrade an existing Linux installation, you can choose to install on existing partitions and then choose to 'preserve user files in /home.'  This will keep your personal files, but not your KDE configurations.</p>"));
@@ -1679,7 +1503,7 @@ void MInstall::pageDisplayed(int next) {
     case 3:
       setCursor(QCursor(Qt::WaitCursor));
       tipsEdit->setText(tr("<p><b>Getting Started</b><br/>To help you get started using MEPIS, the community has written a manual which can be read by clicking the MEPIS Manual shortcut on the desktop.</p>"
-      "<p>There are bookmarks in the web browsers that link to MEPIS community sites and doucmentation.</p>"));
+      "<p>There are bookmarks in the web browsers that link to MEPIS community sites and documentation.</p>"));
       ((MMain *)mmn)->setHelpText(tr("<p><b>Installation in Progress</b><br/>"
         "MEPIS is installing.  For a fresh install, this will probably take 5-20 minutes, depending on the speed of your system and the size of any partitions you are reformatting.</p>"
         "<p>If you click the Abort button, the installation will be stopped as soon as possible.</p>"));
@@ -1716,41 +1540,34 @@ void MInstall::pageDisplayed(int next) {
       ((MMain *)mmn)->setHelpText(tr("<p><b>Select Boot Method</b><br/>MEPIS uses the GRUB bootloader to boot MEPIS and MS-Windows.  If you have other versions of Linux already installed on your computer, you may have to add them manually to the /boot/grub/menu.lst file.</p>"
         "<p>By default GRUB is installed in the Master Boot Record of your boot drive and replaces the boot loader you were using before. This is normal.</p>"
         "<p>If you choose to install GRUB at root instead of MBR, then GRUB will be installed at the beginning of the root partition.  This option is for experts only.</p>"
-        "<p>The 'use initrd' option will allow a special software called initrd to preload extra drivers, restore from suspend to disk, and start the splash screen earlier. Its use is recommended, but usually not manditory. </p>"
+        "<p>The 'use initrd' option will allow a special software called initrd to preload extra drivers, restore from suspend to disk, and start the splash screen earlier. Its use is recommended.</p>"
         "<p>If you do not select the Install GRUB checkbox, GRUB will not be installed at this time.  You can install GRUB later by using the Reinstall GRUB function in the MEPIS System Assistant.</p>"));
       backButton->setEnabled(false);
       break;
 
     case 5:
-      ((MMain *)mmn)->setHelpText(tr("<p><b>Common Services to Enable</b><br/>Select any of the these common services that you might need with your system configuration and the services will be started automatically when you start MEPIS.  Usually the default selections will be fine.</p> "
-        "<p>The PPP service is required for dialup connections and for older adsl services.  If you have a modern adsl modem, you will probably NOT need the PPP service.</p>"));
-      nextButton->setEnabled(true);
-      backButton->setEnabled(true);
-      break;
-
-    case 6:
       ((MMain *)mmn)->setHelpText(tr("<p><b>Computer Identity</b><br/>The computer name is a common unique name which will identify your computer if it is on a network.  The computer domain is unlikely to be used unless your ISP or local network requires it.</p>"
         "<p>The SaMBa Server needs to be activated if you want to use SMB to share some of your directories or printer with a local computer that is running MS-Windows or Mac OSX.  If you already use SMB, set Workgroup to match the workgroup of your other computers.</p>"));
       nextButton->setEnabled(true);
       backButton->setEnabled(false);
       break;
 
-    case 7:
+    case 6:
       ((MMain *)mmn)->setHelpText(tr("<p><b>Localization Defaults</b><br/>Set the default keyboard and locale.  These will apply, unless they are overridden later by the user.</p>"
         "<p><b>Configure Clock</b><br/>If you have an Apple or a pure Unix computer, by default the system clock is set to GMT or Universal Time.  In this case, check the box for 'System clock uses GMT.'</p>"
-        "<p>The CD boots with the timezone preset to EST, but you can change the installation timezone here. Other time configuration may be changed after you reboot into the new installation, by going to Start Menu > Settings > System Settings > Date & Time</p>"));
+        "<p>The CD boots with the timezone preset to EST. You can change the timezone and other time configuration, after you reboot into the new installation, by going to Start Menu > Settings > System Settings > Date & Time</p>"));
       nextButton->setEnabled(true);
       backButton->setEnabled(false);
       break;
 
-    case 8:
+    case 7:
       ((MMain *)mmn)->setHelpText(tr("<p><b>Default User Login</b><br/>The root user is similar to the Administrator user in some other operating systems.  You should not use the root user as your daily user account.  Please enter the name for a new (default) user account that you will use on a daily basis.  If needed, you can add other user accounts later. </p>"
         "<p><b>Passwords</b><br/>Enter a new password for your default user account and for the root account.  Each password must be entered twice.  Remember these passwords, you will need them to login and use MEPIS!</p>"
-        "<p>By default the password entries are not visible.  To see the passwords that you are typing, check 'Show passwords.</p>"));
+        "<p>By default the password entries are not visible.  To see the passwords that you are typing, check Show passwords.</p>"));
       nextButton->setEnabled(true);
       break;
 
-    case 9:
+    case 8:
       ((MMain *)mmn)->setHelpText(tr("<p><b>Congratulations!</b><br/>You have completed the installation of MEPIS Linux.</p>"
         "<p><b>Finding Applications</b><br/>There are hundreds of excellent applications installed with MEPIS.  The best way to learn about them is to browse through the Start Menu and try them.</p>"
         "<p>Many of the apps were developed specifically for the KDE environment.  These are shown in the main menus and in the More Programs menus. "
@@ -1925,6 +1742,8 @@ void MInstall::on_abortInstallButton_clicked() {
 void MInstall::on_qtpartedButton_clicked() {
   system("/sbin/swapoff -a 2>&1");
   system("/usr/bin/partitionmanager");
+  system("partprobe");
+  system("sleep 5");
   system("/usr/sbin/buildfstab -r");
   system("/sbin/swapon -a 2>&1");
   this->updatePartitionWidgets();
@@ -2222,26 +2041,26 @@ void MInstall::copyTime() {
   switch (i) {
     case 1:
       tipsEdit->setText(tr("<p><b>Getting Help</b><br/>"
-        "Basic information about MEPIS Linux is at www.mepis.org.  There are volunteers to help you at mepiscommunity.org.</p>"
+        "Basic information about MEPIS Linux is at www.mepis.org.  There are volunteers to help you at forum.mepiscommunity.org.</p>"
         "<p>If you ask for help, please remember to describe your problem and your computer in some detail. Usually statements like 'it didn't work' are not helpful.</p>"));
       break;
 
     case 6:
       tipsEdit->setText(tr("<p><b>Repairing Your Installation</b><br/>"
       "If MEPIS stops working from the hard drive, sometimes it's possible to fix the problem by booting from CD and running one of the MEPIS Assistants or by using one of the regular Linux tools to repair the system.</p>"
-      "<p>You can also use your MEPIS CD to recover data from MS-Windows systems!</p>"));
+      "<p>You can also use your MEPIS CD to recover data from MS-Windows systems.</p>"));
       break;
 
     case 11:
       tipsEdit->setText(tr("<p><b>MEPIS and Debian Compatibility</b><br/>"
       "The MEPIS core is compatible with most Debian Stable software packages of the same release cycle. Ubuntu binary packages are almost never compatible with Debian or MEPIS.</p>"
-      "<p>If a package is not available from the recommended MEPIS and Debian package pools, then it may be available in a MEPIS community software repository.  Visit forum.mepiscommunity.org for more information.</p>"));
+      "<p>If a package is not available from the recommended MEPIS and Debian package pools, then it may be available in the Community software repository.  Visit mepiscommunity.org for more information.</p>"));
       break;
 
-    case 16:
+    case 18:
       if (!getCmdValue("cat /etc/default/mepis","SERVER","="," ").contains("yes", Qt::CaseInsensitive)) {
       tipsEdit->setText(tr("<p><b>Installing and Updating Software</b><br/>"
-      "Software packages can be installed and updated from the MEPIS software pools with Stat Menu > System > Synaptic. </p>"));
+      "Software packages can be installed and updated from the MEPIS software pools with Start Menu > System > Synaptic. </p>"));
       }
       break;
 
@@ -2252,34 +2071,34 @@ void MInstall::copyTime() {
       }
       break;
 
-    case 25:
+    case 24:
       tipsEdit->setText(tr("<p><b>Communities Make a Difference</b><br/>"
-        "MEPIS Linux stands on the shoulders of the excellent work of Linus, the kernel team, Debian, Mozilla, OpenOffice.org, KDE, other upstream software developers and the people at mepiscommunity.org.</p>"
+        "MEPIS Linux stands on the shoulders of the excellent work of Linus, the kernel team, Debian, Mozilla, KDE, other upstream software developers and the people at mepiscommunity.org.</p>"
         "<p>Without their hard work and support, MEPIS Linux would not be possible.</p>"));
       break;
 
     case 29:
       if (!getCmdValue("cat /etc/default/mepis","SERVER","="," ").contains("yes", Qt::CaseInsensitive)) {
       tipsEdit->setText(tr("<p><b>Support MEPIS</b><br/>"
-      "MEPIS is supported by people like you. Some help others at the community site - mepiscommunity.org - or they translate help files into different languages, or make suggestions, write documentation, or help test new software.</p>"
+      "MEPIS is supported by people like you. Some help others at the community sites - mepiscommunity.org, or they translate help files into different languages, or make suggestions, write documentation, or help test new software.</p>"
       "<p>If you like MEPIS please go to mepis.org/store and purchase a subscription to help pay for future improvements.</p>"));
       }
       break;
 
-    case 33:
+    case 35:
       tipsEdit->setText(tr("<p><b>Network Configuration</b><br/>"
       "MEPIS comes preconfigured to use Network Manager to startup your network.  In many cases, this will just work, otherwise you may need to configure the network with Start Menu > System Settings > Network Settings.</p>"
       "<p>If your network still does not work, you can manually configure the network with the MEPIS Network Assistant. </p>"));
       break;
 
-    case 38:
+    case 41:
       if (!getCmdValue("cat /etc/default/mepis","SERVER","="," ").contains("yes", Qt::CaseInsensitive)) {
       tipsEdit->setText(tr("<p><b>Say Goodbye to MS-Office</b><br/>"
-      "SimplyMEPIS includes OpenOffice, the widely acclaimed Open Source office suite.  It offers excellent compatibility with files created using MS-Office.</p>"));
+      "SimplyMEPIS includes LibreOffice, the widely acclaimed Open Source office suite.  It offers excellent compatibility with files created using MS-Office.</p>"));
       }
       break;
 
-    case 43:
+    case 44:
       if (!getCmdValue("cat /etc/default/mepis","SERVER","="," ").contains("yes", Qt::CaseInsensitive)) {
       tipsEdit->setText(tr("<p><b>Fonts in MEPIS Linux</b><br/>"
       "MEPIS provides excellent support for TrueType fonts. Some high quality ttf fonts are included with MEPIS.  If you have additional fonts, you can install and manage them with Start Menu > System Settings > Font Installer.</p>"));
@@ -2294,21 +2113,21 @@ void MInstall::copyTime() {
       }
       break;
 
-    case 52:
+    case 54:
       if (!getCmdValue("cat /etc/default/mepis","SERVER","="," ").contains("yes", Qt::CaseInsensitive)) {
       tipsEdit->setText(tr("<p><b>Archiving with Ark</b><br/>"
         "KDE has an archiving utility, called Ark, that works similar to WinZip.  You can use Ark to open archives you receive, to 'extract here,' create new archives, etc.</p>"));
       }
       break;
 
-    case 57:
+    case 58:
       tipsEdit->setText(tr("<p><b>Information on the Internet</b><br/>"
       "Much of the Linux information on the Internet is inaccurate or obsolete.  It is not wise to rely on such sources, unless the information comes from a trusted source and pertains to the exact version of Linux you are using.</p>"
-      "<p>When in doubt, ask for advice at forum.mepiscommunity.org.</p>"));
+      "<p>When in doubt, ask for advice at mepiscommunity.org.</p>"));
       break;
 
 
-    case 62:
+    case 63:
       if (!getCmdValue("cat /etc/default/mepis","SERVER","="," ").contains("yes", Qt::CaseInsensitive)) {
       tipsEdit->setText(tr("<p><b>Removable Devices</b><br/>"
       "Removable media like USB keys and CDROMs are accessable via the Device Notifier that is located on the left side of the Panel next to the Start Menu.</p>"
@@ -2330,7 +2149,7 @@ void MInstall::copyTime() {
         "<p>If you find that MEPIS is useful, please make a purchase at the MEPIS store, www.mepis.org/store.</p>"));
       break;
 
-    case 78:
+    case 77:
       if (!getCmdValue("cat /etc/default/mepis","SERVER","="," ").contains("yes", Qt::CaseInsensitive)) {
       tipsEdit->setText(tr("<p><b>Playing Audio CDs</b><br/>"
       "The most common way to play an audio CD is with Start Menu > Multimedia > KsCD.  To play an audio CD, do not 'open the filesystem' as if it were a data CD.</p>"));

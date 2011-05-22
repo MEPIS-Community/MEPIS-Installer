@@ -33,26 +33,6 @@ class MInstall : public QWidget, public Ui::MeInstall {
   protected:
     QProcess *proc;
     QTimer *timer;
-    QTreeWidgetItem *webminItem;
-    QTreeWidgetItem *sshItem;
-    QTreeWidgetItem *cupsysItem;
-    QTreeWidgetItem *mysqlItem;
-    QTreeWidgetItem *apacheItem;
-    QTreeWidgetItem *dovecotItem;
-    QTreeWidgetItem *postfixItem;
-    QTreeWidgetItem *proftpItem;
-    QTreeWidgetItem *rsyncItem;
-    QTreeWidgetItem *bindItem;
-    QTreeWidgetItem *dhcpItem;
-    QTreeWidgetItem *dansItem;
-    QTreeWidgetItem *shorewallItem;
-    QTreeWidgetItem *snortItem;
-    QTreeWidgetItem *squidItem;
-    
-    QTreeWidgetItem *guarddogItem;
-    QTreeWidgetItem *pppItem;
-    QTreeWidgetItem *isdnItem;
-    QTreeWidgetItem *bluezItem;
 
     QDialog *mmn;
 
