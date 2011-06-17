@@ -2152,7 +2152,7 @@ void MInstall::copyTime() {
     case 77:
       if (!getCmdValue("cat /etc/default/mepis","SERVER","="," ").contains("yes", Qt::CaseInsensitive)) {
       tipsEdit->setText(tr("<p><b>Playing Audio CDs</b><br/>"
-      "The most common way to play an audio CD is with Start Menu > Multimedia > KsCD.  To play an audio CD, do not 'open the filesystem' as if it were a data CD.</p>"));
+      "The most common way to play an audio CD is with Start Menu > Multimedia > More Applications > KsCD.  To play an audio CD, do not 'open the filesystem' as if it were a data CD.</p>"));
       }
       break;
 
