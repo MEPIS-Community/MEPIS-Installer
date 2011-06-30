@@ -2060,14 +2060,14 @@ void MInstall::copyTime() {
     case 18:
       if (!getCmdValue("cat /etc/default/mepis","SERVER","="," ").contains("yes", Qt::CaseInsensitive)) {
       tipsEdit->setText(tr("<p><b>Installing and Updating Software</b><br/>"
-      "Software packages can be installed and updated from the MEPIS software pools with Start Menu > System > Synaptic. </p>"));
+      "Software packages can be installed and updated from the MEPIS software pools with Start Menu > System > Synaptic Package Manager. </p>"));
       }
       break;
 
     case 21:
       if (!getCmdValue("cat /etc/default/mepis","SERVER","="," ").contains("yes", Qt::CaseInsensitive)) {
       tipsEdit->setText(tr("<p><b>Dialup Connection</b><br/>"
-      "If you use a dialup connection with your computer, use Start Menu > Internet > KPPP to define a connection, test that the modem is working, and then dial your ISP.</p>"));
+      "If you use a dialup connection with your computer, use Start Menu > Internet > More Applications > KPPP to define a connection, test that the modem is working, and then dial your ISP.</p>"));
       }
       break;
 
@@ -2087,7 +2087,7 @@ void MInstall::copyTime() {
 
     case 35:
       tipsEdit->setText(tr("<p><b>Network Configuration</b><br/>"
-      "MEPIS comes preconfigured to use Network Manager to startup your network.  In many cases, this will just work, otherwise you may need to configure the network with Start Menu > System Settings > Network Settings.</p>"
+      "MEPIS comes preconfigured to use Network Manager to startup your network.  In many cases, this will just work, otherwise you may need to configure the network with Start Menu > Settings > System Settings > Network Settings.</p>"
       "<p>If your network still does not work, you can manually configure the network with the MEPIS Network Assistant. </p>"));
       break;
 
@@ -2101,14 +2101,14 @@ void MInstall::copyTime() {
     case 44:
       if (!getCmdValue("cat /etc/default/mepis","SERVER","="," ").contains("yes", Qt::CaseInsensitive)) {
       tipsEdit->setText(tr("<p><b>Fonts in MEPIS Linux</b><br/>"
-      "MEPIS provides excellent support for TrueType fonts. Some high quality ttf fonts are included with MEPIS.  If you have additional fonts, you can install and manage them with Start Menu > System Settings > Font Installer.</p>"));
+      "MEPIS provides excellent support for TrueType fonts. Some high quality ttf fonts are included with MEPIS.  If you have additional fonts, you can install and manage them with Start Menu > Settings > System Settings > Font Installer.</p>"));
       }
       break;
 
     case 48:
       if (!getCmdValue("cat /etc/default/mepis","SERVER","="," ").contains("yes", Qt::CaseInsensitive)) {
       tipsEdit->setText(tr("<p><b>Additional System Configuration</b><br/>"
-        "The KDE desktop, system software, and hardware can be configured with Start Menu > System Settings.  With these tools, you can customize the look and feel, peripherials, and much more.</p>"
+        "The KDE desktop, system software, and hardware can be configured with Start Menu > Settings > System Settings.  With these tools, you can customize the look and feel, peripherials, and much more.</p>"
         "<p>Information about your system is available in Start Menu > System > KInfoCenter.</p>"));
       }
       break;
